@@ -1,165 +1,171 @@
 # OpenSummary
 
-Расширение для браузера, которое делает **конспект любого видео на YouTube** через почти любой ИИ-провайдер (OpenAI-совместимые API, Google Gemini, Anthropic, локальные модели через Ollama / LM Studio).
+[![English](https://img.shields.io/badge/English-1f6feb?style=for-the-badge)](README.md)
+[![Русский](https://img.shields.io/badge/%D0%A0%D1%83%D1%81%D1%81%D0%BA%D0%B8%D0%B9-6e7781?style=for-the-badge)](README.ru.md)
+[![Українська](https://img.shields.io/badge/%D0%A3%D0%BA%D1%80%D0%B0%D1%97%D0%BD%D1%81%D1%8C%D0%BA%D0%B0-6e7781?style=for-the-badge)](README.uk.md)
+
+Browser extension that builds a **summary of any YouTube video** with just about any AI provider (OpenAI-compatible APIs, Google Gemini, Anthropic, local models through Ollama / LM Studio).
 
 ```
-┌──────────────┐   субтитры    ┌──────────────────┐   конспект   ┌──────────────┐
-│  YouTube     │ ────────────▶ │  ИИ-провайдер    │ ───────────▶ │  панель на   │
-│  (страница)  │               │  (ваш выбор)     │              │  странице    │
-└──────────────┘               └──────────────────┘              └──────────────┘
+┌──────────────┐   captions    ┌──────────────────┐   summary   ┌──────────────┐
+│   YouTube    │ ────────────▶ │   AI provider    │ ──────────▶ │  in-page     │
+│   (page)     │               │   (your choice)  │             │  panel       │
+└──────────────┘               └──────────────────┘             └──────────────┘
 ```
 
-* **Один движок — ИИ.** Конспект пишет выбранная модель; не-AI суммаризации нет — её конспекты были набором повторов и обрывков, поэтому движок удалён. Стратегия адаптивная: если весь транскрипт укладывается в безопасный бюджет контекста (128 000 токенов по умолчанию), это **один запрос** — даже для трёхчасового видео (~64 000 токенов). Внутри этого одного ответа готовый TL;DR, ключевые пункты и разделы появляются в панели по мере генерации — как только модель закрыла значение и оно прошло проверку, а не после последней скобки. Если транскрипт не укладывается, включается параллельный map-reduce с крупными фрагментами (6 000 токенов): готовые фрагменты появляются в панели по мере ответов, а итоговый TL;DR собирается только после обработки всего транскрипта, без потери таймкодов и с явной пометкой, если какая-то часть не обработалась. Есть стриминг, отмена, повторы, автопереключение на резервного провайдера, кэш конспектов и кэш разбора фрагментов. Если Chrome/Firefox выгрузит фоновый процесс посреди работы, панель предложит кнопку **«Продолжить»** и возобновит именно сохранённое задание с уже готовых фрагментов — при условии, что транскрипт, промпт, модель и настройки не менялись.
+* **One engine — AI.** The summary is written by the model you choose; there is no non-AI summarizer — its output was a pile of repeats and fragments, so the engine was removed. The strategy is adaptive: if the whole transcript fits the safe context budget (128 000 tokens by default), it is **one request** — even for a three-hour video (~64 000 tokens). Inside that single answer the TL;DR, key moments and sections appear in the panel as they are generated — as soon as the model closes a value and it passes validation, not after the last brace. If the transcript does not fit, a parallel map-reduce takes over with large chunks (6 000 tokens): finished chunks appear in the panel as answers arrive, and the final TL;DR is assembled only after the whole transcript is processed, without losing timecodes and with an explicit note when some part failed. Streaming, cancellation, retries, automatic failover to a backup provider, summary cache and chunk-analysis cache are all there. If Chrome/Firefox unloads the background process mid-run, the panel offers a **Continue** button and resumes exactly the saved job from the chunks that were already finished — provided the transcript, prompt, model and settings have not changed.
 
-## Возможности
+## Features
 
-| Раздел | Что внутри |
+| Section | What is inside |
 | --- | --- |
-| **Обзор** | TL;DR, разделы по смыслу или по главам (заголовок целиком — ссылка на момент видео), ключевые пункты и тезисы с таймкодами, выводы, «что можно сделать», цитаты |
-| **Вопросы** | Q&A по содержанию: ответ модели с цитатами-источниками. Без настроенного провайдера — резервный поиск по транскрипту (BM25), который цитирует фрагменты, а не пересказывает их |
+| **Overview** | TL;DR, sections by topic or by chapters (the whole heading is a link to that moment in the video), key moments and takeaways with timecodes, conclusions, action items, quotes |
+| **Q&A** | Questions about the content: the model answers with cited sources. With no provider configured, a fallback BM25 transcript search quotes the matching fragments instead of paraphrasing them |
 
-Ключевые слова, сущности, статистика, проверка чисел и диагностика запуска лежат под свёрнутым «Подробности запуска» внизу панели — они объясняют, как сделан конспект, а не сам конспект.
+Keywords, entities, stats, number checks and run diagnostics live under the collapsed **Run details** at the bottom of the panel — they explain how the summary was produced, not the summary itself.
 
-Дополнительно: круг­лая кнопка на странице видео, popup с быстрыми действиями, окно настроек, экспорт в Markdown / TXT / JSON (в том числе вместе с транскриптом), кэш и история конспектов, горячие клавиши, контекстное меню по ссылке на видео.
+Also included: a round button on the watch page, a popup with quick actions, a settings page, export to Markdown / TXT / JSON (optionally together with the transcript), summary cache and history, keyboard shortcuts, and a context menu on video links.
 
-## Поддерживаемые ИИ-провайдеры
+## Supported AI providers
 
-Четыре семейства API закрывают почти всё:
+Four API families cover almost everything:
 
-| Тип API | Примеры |
+| API type | Examples |
 | --- | --- |
-| OpenAI-совместимый `/chat/completions` | OpenRouter, Groq, Cerebras, Mistral, DeepSeek, Together, Fireworks, DeepInfra, Novita, SambaNova, NVIDIA NIM, GitHub Models, Cloudflare Workers AI, Qwen (DashScope), Zhipu GLM, Moonshot, SiliconFlow, Chutes, Hyperbolic, ArliAI, xAI, LM Studio, llama.cpp, vLLM, Jan, text-generation-webui |
+| OpenAI-compatible `/chat/completions` | OpenRouter, Groq, Cerebras, Mistral, DeepSeek, Together, Fireworks, DeepInfra, Novita, SambaNova, NVIDIA NIM, GitHub Models, Cloudflare Workers AI, Qwen (DashScope), Zhipu GLM, Moonshot, SiliconFlow, Chutes, Hyperbolic, ArliAI, xAI, LM Studio, llama.cpp, vLLM, Jan, text-generation-webui |
 | Google Gemini | `generativelanguage.googleapis.com` (AI Studio) |
-| Anthropic Messages | `api.anthropic.com` (заголовок `x-api-key` + браузерный доступ) |
+| Anthropic Messages | `api.anthropic.com` (`x-api-key` header + browser access) |
 | Ollama | `localhost:11434` (`/api/chat`, `/api/tags`) |
 
-В настройках есть готовые пресеты с отметкой «бесплатный тариф»: **Google AI Studio**, **Groq**, **Cerebras**, **OpenRouter (`:free`-модели)**, **Zhipu GLM-4-Flash**, **GitHub Models**, **SambaNova**, **Together**, **Cloudflare Workers AI**, **NVIDIA NIM**, **Qwen**, **SiliconFlow**, **Chutes**, **Hyperbolic**, **ArliAI** и локальные движки. Любой другой сервис добавляется вручную: базовый URL, путь, схема авторизации, список моделей.
+Settings ship with ready-made presets marked "free tier": **Google AI Studio**, **Groq**, **Cerebras**, **OpenRouter (`:free` models)**, **Zhipu GLM-4-Flash**, **GitHub Models**, **SambaNova**, **Together**, **Cloudflare Workers AI**, **NVIDIA NIM**, **Qwen**, **SiliconFlow**, **Chutes**, **Hyperbolic**, **ArliAI** and local engines. Any other service is added manually: base URL, path, auth scheme, model list.
 
-## Установка
+## Installation
 
-### Готовый архив
+### Ready-made archive
 
-Возьмите ZIP из [Releases](https://github.com/Smokelweiss/OpenSummary/releases/latest) и распакуйте — собирать из исходников не обязательно. Шаги `npm run icons` / `npm run build` ниже нужны только при работе с кодом.
+Grab the ZIP from [Releases](https://github.com/Smokelweiss/OpenSummary/releases/latest) and unzip it — building from source is optional. The `npm run icons` / `npm run build` steps below are only needed when working on the code.
 
-### Chrome / Edge / Opera (распакованное расширение)
+### Chrome / Edge / Opera (unpacked extension)
 
-1. `npm run icons` и `npm run build` — появятся `dist/opensummary-chrome/` и ZIP-архив.
-2. `chrome://extensions` → включите **Режим разработчика** → **Загрузить распакованное расширение** → выберите `dist/opensummary-chrome`.
-3. Откройте любое видео на YouTube: справа снизу появится кнопка OpenSummary.
+1. `npm run icons` and `npm run build` — this creates `dist/opensummary-chrome/` and the ZIP archive.
+2. `chrome://extensions` → enable **Developer mode** → **Load unpacked** → pick `dist/opensummary-chrome`.
+3. Open any YouTube video: the OpenSummary button appears in the bottom-right corner.
 
 ### Firefox
 
-`dist/opensummary-firefox/` — сборка с event-page вместо service worker (`about:debugging` → **Этот Firefox** → **Загрузить временное дополнение** → `manifest.json`). Требуется Firefox 128 или новее (там полностью поддержаны MV3-модули фона и `optional_host_permissions`).
+`dist/opensummary-firefox/` is a build with an event page instead of a service worker (`about:debugging` → **This Firefox** → **Load Temporary Add-on** → `manifest.json`). Firefox 128 or newer is required (it fully supports MV3 background modules and `optional_host_permissions`).
 
-### Первый запуск
+### First run
 
-* Откройте настройки → **Провайдеры ИИ** → «Добавить провайдера» → выберите сервис → вставьте API-ключ → «Проверить связь» → «Сохранить». После этого кнопка «Саммари» в панели считает конспект моделью.
+* Open Settings → **AI providers** → "Add provider" → pick a service → paste the API key → "Test connection" → "Save". After that the **Summarize** button in the panel produces a model-written summary.
 
-## Использование
+## Usage
 
-* **Кнопка на странице** или `Alt+Shift+S` — открыть/скрыть панель; `Alt+Shift+D` — сразу посчитать конспект.
-* **Popup расширения** — кнопка «Саммари с ИИ» для активной вкладки и список недавних конспектов.
-* **Таймкоды** в конспекте кликабельны — плеер перематывается на нужный момент.
-* **Экспорт**: внизу панели — «Копировать» и «Скачать» (Markdown / текст / JSON, опционально вместе с транскриптом).
-* **Только нужное на экране.** В шапке — две вкладки (Обзор, Вопросы) и три кнопки: саммари, быстрые настройки, закрыть. Режим, провайдер, модель, язык и объём живут в быстрых настройках за шестерёнкой одной строкой, «Все настройки» — там же справа. Статистика, ключевые слова, сущности и проверка чисел — под свёрнутым «Подробности запуска» внизу панели. Отдельных вкладок «Разделы», «Таймлайн» и «Транскрипт» нет: разделы живут в «Обзоре», у YouTube есть своя панель с поиском. Панель по умолчанию светлая, переключатель темы — солнце/луна в шапке (или «Настройки → Тема панели»).
-* **Нет субтитров?** Панель возьмёт текст из встроенной панели «Транскрипт» на странице: расширение откроет её в фоне и сразу закроет, страница не дёргается и не прокручивается. Если и её нет — на экране будет понятная ошибка с кнопкой «Взять транскрипт со страницы», а не пустая панель. Ручной вставки текста больше нет.
+* **The on-page button** or `Alt+Shift+S` — open/close the panel; `Alt+Shift+D` — summarize right away.
+* **The extension popup** — "Summarize with AI" for the active tab and a list of recent summaries.
+* **Timecodes** in the summary are clickable — the player jumps to that moment.
+* **Export**: at the bottom of the panel — "Copy" and "Download" (Markdown / text / JSON, optionally together with the transcript).
+* **Only what matters on screen.** The header has two tabs (Overview, Q&A) and three buttons: summarize, quick settings, close. Mode, provider, model, language and length live in the quick settings behind the gear, on a single line, with "All settings" to the right. Stats, keywords, entities and number checks sit under the collapsed "Run details" at the bottom. There are no separate "Sections", "Timeline" and "Transcript" tabs: sections live in Overview, and YouTube has its own searchable transcript panel. The panel is light by default; the theme switch is the sun/moon in the header (or "Settings → Panel theme").
+* **No captions?** The panel takes the text from the built-in "Transcript" panel on the page: the extension opens it in the background and closes it immediately, so the page neither jumps nor scrolls. If that is not available either, you get a clear error with a "Grab transcript from page" button instead of an empty panel. Manual text pasting is gone.
 
-## Скорость
+## Speed
 
-Потоковые пункты панели отрисовываются не чаще одного раза на кадр, а чтение транскрипта со страницы не показывает панель YouTube: она переносится за экран до появления, закрывается и возвращается в исходное место, причём страница не смещается — позиция плеера на экране сохраняется. Браузерный E2E замеряет открытие панели, отрисовку готового ответа и время до первого пункта и падает, если бюджет превышен.
+Streaming items are rendered at most once per frame, and reading the transcript from the page never shows YouTube's panel: it is moved off-screen before it appears, closed, and put back, while the page itself does not shift — the player stays exactly where it was on screen. The browser E2E measures panel opening, rendering of the finished answer and time to the first item, and fails when a budget is exceeded.
 
-## Настройки
+## Settings
 
-* **Интерфейс** — язык, тема, ширина и способ показа панели (встроенная колонка или поверх страницы), автозапуск.
-* **Конспект** — язык результата, объём, тон, таймстемпы, свои инструкции для модели.
-* **Тонкая настройка ИИ** — стратегия (авто / один запрос / map-reduce), бюджет контекста, размер чанка, параллельные запросы, temperature, лимит токенов ответа, повторы, таймаут, стриминг, резервный провайдер, кэш конспектов и кэш разбора фрагментов, своя системная инструкция.
-* **Данные и приватность** — где хранить ключи (постоянно или до закрытия браузера), кэш и история, экспорт/импорт, сброс.
+* **Interface** — language, theme, panel width and display mode (built-in column or overlay), autostart.
+* **Summary** — output language, length, tone, timestamps, custom instructions for the model.
+* **AI fine-tuning** — strategy (auto / single request / map-reduce), context budget, chunk size, parallel requests, temperature, response token limit, retries, timeout, streaming, backup provider, summary cache and chunk-analysis cache, custom system prompt.
+* **Data & privacy** — where keys are stored (persistently or until the browser closes), cache and history, export/import, reset.
 
-## Приватность
+## Privacy
 
-* Ключи API и настройки хранятся **только в вашем браузере** (`chrome.storage`) и не отправляются разработчику.
-* Провайдеру уходит **текст субтитров** и запрос на конспект — ничего больше. Хост провайдера виден в настройках, доступ к произвольным хостам запрашивается отдельно. Резервный поиск по транскрипту работает офлайн и ничего не отправляет.
-* Никакой аналитики и телеметрии. Подробности — в [PRIVACY.md](PRIVACY.md).
+* API keys and settings are stored **only in your browser** (`chrome.storage`) and are never sent to the developer.
+* What goes to the provider is **the caption text** and the summarization request — nothing else. The provider host is shown in Settings, and access to arbitrary hosts is requested separately. The fallback transcript search runs offline and sends nothing.
+* No analytics, no telemetry. Details in [PRIVACY.md](PRIVACY.md).
 
-## Разработка
+## Development
 
 ```bash
-npm test          # 334 теста: ИИ на mock-провайдерах, потоковый протокол, субтитры, фон (заглушка chrome), панель на стаб-DOM, импорт ответа YouTube
-npm run quality   # офлайн-замер без модели: границы чанков по сменам темы и перекрытие
-npm run fixture -- status  # импорт/очистка реального ytInitialPlayerResponse: analyze|sanitize|status (tests/fixtures/youtube/)
-npm run e2e       # настоящий Chrome/Chromium: черновик, итог, фолбэк и AUTH; скриншоты в dist/e2e-artifacts/
-npm run e2e:rounds -- --cycles 20   # многократные прогоны по маршрутам транскрипта; отчёт в dist/e2e-rounds/
+npm test          # 361 tests: AI on mock providers, streaming protocol, captions, background (chrome stub), panel on a stub DOM, YouTube response import, hostile corpus and parse fuzzing
+npm run quality   # offline measurement without a model: chunk boundaries at topic shifts and overlap
+npm run fixture -- status  # import/clear a real ytInitialPlayerResponse: analyze|sanitize|status (tests/fixtures/youtube/)
+npm run e2e       # real Chrome/Chromium: draft, final, fallback and AUTH; screenshots in dist/e2e-artifacts/
+npm run e2e:rounds -- --cycles 20   # repeated runs across transcript routes; report in dist/e2e-rounds/
 OSUM_YOUTUBE_TEST_URL="https://www.youtube.com/watch?v=..." npm run e2e:youtube
-                  # живой YouTube (субтитры + ручная вставка), AI — локальный мок; нужна сеть
-                  # --cycles N повторяет полный путь N раз (замер доли успешных прогонов),
-                  # OSUM_CHROME_PROXY=socks5://127.0.0.1:9150 — сеть, где youtube.com
-                  # заблокирован: тестовый браузер пойдёт через ваш локальный прокси/VPN
-npm run live      # живой цикл: настоящий YouTube + OpenRouter в настоящем Chrome, отчёт и скриншоты
-                  # ключ только из OSUM_OPENROUTER_KEY / --key-file вне репозитория; см. ниже
-npm run bench     # ручной живой замер: --live --transcript=FILE + OPENROUTER_API_KEY (флаги: --help)
-                  # без ключа: --live --mock --synthetic (SSE-мок) и --no-stream для сравнения
-npm run bench:sim # офлайн-стенд без ключа: запросы, волны Map, раунды Reduce, критический путь
-npm run bench:report # медиана и разброс по нескольким живым отчётам
-npm run icons     # генерация PNG-иконок (свой кодировщик, без зависимостей)
-npm run check     # статические проверки: синтаксис, manifest, id элементов страниц, импорты и экспорты,
-                  # типы сообщений и портов, вызовы неизвестных функций, поиск секретов
-npm run build     # сборка dist/ (Chrome + Firefox, ZIP и распакованные папки)
+                  # live YouTube (captions + manual insert), AI is a local mock; network required
+                  # --cycles N repeats the whole path N times (measures the success rate),
+                  # OSUM_CHROME_PROXY=socks5://127.0.0.1:9150 for networks where youtube.com
+                  # is blocked: the test browser goes through your local proxy/VPN
+npm run live      # live loop: real YouTube + OpenRouter in real Chrome, report and screenshots
+                  # key only from OSUM_OPENROUTER_KEY / --key-file outside the repository; see below
+npm run bench     # manual live measurement: --live --transcript=FILE + OPENROUTER_API_KEY (flags: --help)
+                  # without a key: --live --mock --synthetic (SSE mock) and --no-stream for comparison
+npm run bench:sim # offline stand without a key: requests, map waves, reduce rounds, critical path
+npm run bench:report # median and spread across several live reports
+npm run icons     # generate PNG icons (own encoder, no dependencies)
+npm run check     # static checks: syntax, manifest, page element ids, imports and exports,
+                  # message and port types, calls to unknown functions, secret scan
+npm run build     # build dist/ (Chrome + Firefox, ZIP and unpacked folders)
 ```
 
-Зависимостей нет вообще: всё на стандартной библиотеке Node ≥ 18. Сборка не нужна — расширение загружается из исходников как есть. Браузерный E2E сам находит Chrome/Chromium (или путь в `OSUM_CHROME` / `--chrome`), собирает расширение, поднимает локальную страницу и SSE-мок и не трогает обычную сборку. Отдельный онлайн-сценарий `npm run e2e:youtube` открывает настоящее видео (URL в `OSUM_YOUTUBE_TEST_URL`) во временном профиле и проверяет получение субтитров и ручную вставку; AI-провайдер в нём тоже мок, поэтому ключ не нужен. Живой benchmark запускается вручную: `npm run bench -- --live --transcript=FILE` с ключом в переменной окружения; все флаги выводит `npm run bench -- --help`.
+There are no dependencies at all: everything runs on the Node ≥ 18 standard library. No build step is needed — the extension loads from the sources as is. The browser E2E finds Chrome/Chromium itself (or takes `OSUM_CHROME` / `--chrome`), builds the extension, serves a local page and an SSE mock, and never touches the regular build. The separate online scenario `npm run e2e:youtube` opens a real video (URL in `OSUM_YOUTUBE_TEST_URL`) in a temporary profile and checks caption retrieval and the manual insert; the AI provider there is a mock too, so no key is needed. The live benchmark is run manually: `npm run bench -- --live --transcript=FILE` with the key in an environment variable; `npm run bench -- --help` lists all flags.
 
-Живой цикл `npm run live` — это полный путь «настоящий YouTube → настоящий провайдер → панель»: временный профиль Chrome, реальный ключ OpenRouter из переменной окружения или файла вне репозитория, отчёт в `dist/live-artifacts/report.jsonl` (код ошибки, стратегия, время до первого пункта, счётчики), скриншот каждого сбоя. `--repeat N` гоняет одно видео несколько раз (кэш выключен) — так измеряется доля успешных конспектов, а не один удачный прогон. Ключ никогда не пишется в проект, лог или отчёт.
+The `npm run live` loop is the full path "real YouTube → real provider → panel": a temporary Chrome profile, a real OpenRouter key from an environment variable or a file outside the repository, a report in `dist/live-artifacts/report.jsonl` (error code, strategy, time to the first item, counters) and a screenshot of every failure. `--repeat N` runs the same video several times (cache disabled), which measures the success rate rather than one lucky run. The key is never written to the project, a log or a report.
 
-### Структура
+### Structure
 
 ```
 src/
-  common/      константы, утилиты, совместимость Chrome/Firefox, storage-слой
-  nlp/         схема результата и рендеры, резервный поиск по транскрипту (BM25)
-  transcript/  получение субтитров YouTube (страница + InnerTube), парсинг json3/vtt/srv1/srv3
-  ai/          каталог провайдеров, универсальный клиент, чанкование, промпты, JSON-ремонт, конвейер
-  background/  service worker: маршрутизация сообщений, порты задач, кэш, транскрипты
-  content/     панель на странице (Shadow DOM), i18n, стили, экспорт, DOM-фолбэк транскрипта
-  popup/       popup расширения
-  options/     страница настроек
-tools/         генератор иконок, zip-упаковщик, сборка, проверки
-tests/         тесты и фикстуры
-tests/e2e/     браузерный стенд (Chrome через CDP, SSE-мок, заглушка и живой YouTube)
+  common/      constants, utilities, Chrome/Firefox compatibility, storage layer
+  nlp/         result schema and renderers, fallback transcript search (BM25)
+  transcript/  YouTube caption retrieval (page + InnerTube), json3/vtt/srv1/srv3 parsing
+  ai/          provider catalog, universal client, chunking, prompts, JSON repair, pipeline
+  background/  service worker: message routing, task ports, cache, transcripts
+  content/     in-page panel (Shadow DOM), i18n, styles, export, transcript DOM fallback
+  popup/       extension popup
+  options/     settings page
+tools/         icon generator, zip packer, build, checks
+tests/         tests and fixtures
+tests/e2e/     browser stand (Chrome over CDP, SSE mock, stub and live YouTube)
 ```
 
-### Архитектура в двух словах
+### Architecture in a nutshell
 
-* Service worker — единственное место, где выполняются сетевые запросы и вызовы моделей. Контент-скрипты только рисуют интерфейс.
-* Субтитры берутся тремя способами (в этом порядке): `api/timedtext` по дорожке из данных плеера → `youtubei/v1/get_transcript` (тот же запрос, что делает панель «Расшифровка видео»; не требует PO-token) → чтение уже отрисованной панели на странице. Последний вариант — резервный: он нужен, если оба API ответили отказом; панель при этом скрыта до появления, закрывается сразу после чтения, а страница остаётся на месте: расширение удерживает плеер в той же точке экрана.
-* Контент-скрипты — классические скрипты без модулей, общий неймспейс `window.OSUM`.
-* Долгие задачи идут через `Port` (`osum-task`) с событиями `stage / progress / stream-item / result / error / done` и keepalive каждые 15 секунд — так проверенные пункты появляются до финального ответа, а работу можно отменить.
-* Ответ модели нормализуется в **одну схему** `SummaryResult` (см. `src/nlp/schema.js`), поэтому UI и экспорт не зависят от провайдера.
+* The service worker is the only place where network requests and model calls happen. Content scripts only draw the UI.
+* Captions are fetched in three ways (in this order): `api/timedtext` via the track from the player data → `youtubei/v1/get_transcript` (the very request the "Show transcript" panel makes; no PO token needed) → reading the already rendered panel on the page. The last option is the fallback: it is needed when both APIs refuse; the panel is hidden before it appears, closed right after reading, and the page stays in place — the extension keeps the player at the same point on screen.
+* Content scripts are classic scripts without modules, sharing the `window.OSUM` namespace.
+* Long tasks run over a `Port` (`osum-task`) with `stage / progress / stream-item / result / error / done` events and a keepalive every 15 seconds — that is how verified items appear before the final answer, and how the run can be cancelled.
+* The model response is normalized into **one schema**, `SummaryResult` (see `src/nlp/schema.js`), so the UI and export do not depend on the provider.
 
-## Диагностика
+## Troubleshooting
 
-| Симптом | Что делать |
+| Symptom | What to do |
 | --- | --- |
-| «У этого видео нет субтитров» | Включите CC на странице и запустите анализ ещё раз — или нажмите «Взять транскрипт со страницы» |
-| «Дорожка защищена PO-token» (`POT_REQUIRED`) | Сначала расширение само пробует `youtubei/v1/get_transcript` — тот же запрос, что делает панель «Расшифровка видео», он не требует PO-token. Если и он не ответил, нажмите «Взять транскрипт со страницы» (читается открытая панель) или вставьте текст вручную. В «Деталях» теперь видно, что именно нашёл скрапер: `panel`, `rows`, `timecode cells`, `duration` |
-| «На странице не нашлась панель «Транскрипт»» | Разверните описание и нажмите «Показать текст видео» — или откройте панель «В этом видео» → «Расшифровка видео». Если панель открыта на вкладке «Эпизоды», расширение само переключит её на «Расшифровку видео» и перечитает строки. Строки находятся по таймкодам, в любом раскладе разметки. Если панели нет у самого видео (субтитры не опубликованы), конспект сделать не из чего. Длинные видео доскролливаются целиком, поэтому разбор занимает несколько секунд |
-| «Модель израсходовала лимит и не вернула текст» (`TRUNCATED`) | Обычно так ведут себя «думающие» модели. Увеличьте «Максимум токенов ответа», выберите модель без режима рассуждений или включите стратегию «фрагментами» — расширение само повторит запрос с большим лимитом |
-| ИИ не ответил (`EMPTY_RESPONSE`, `EMPTY_RESULT`, таймаут) | Панель показывает карточку с причиной и подсказкой, а если конспект уже был на экране (например, из кэша), он остаётся под карточкой — без красной плашки вместо результата. Кнопка «Повторить» пробует снова (например, после смены модели), «Настройки» открывает провайдеров. Один пустой ответ модель получает второй шанс: расширение повторяет запрос в коротком формате (1600 токенов, 45 с) |
-| «Модель ответила текстом без JSON» (`BAD_JSON`) | Модель проигнорировала JSON-формат. Расширение уже повторяет запрос в коротком формате; если не помогло — выберите модель без режима рассуждений или уменьшите объём конспекта. В «Деталях» виден текст, который вернула модель |
-| «Вместо конспекта модель вернула вердикт проверки безопасности» (`MISROUTED_MODEL`) | Бесплатный роутер отправил запрос модели-классификатору (`User Safety: safe` и подобное). Повтор почти всегда попадает на пишущую модель; если это повторяется, выберите конкретную модель вместо `openrouter/free` |
-| «Фоновый процесс не ответил» (`WORKER_SILENT`) | Панель не получала ни событий, ни ответов на свои пинги дольше 30 с — обычно фон перезапустился. Нажмите «Повторить»; если не помогает, обновите вкладку. Модель, которая долго «думает» перед первым токеном, этой ошибкой больше не считается: пинги держат прогон живым |
-| Модель отвечает только «размышлениями» | Некоторые бесплатные модели возвращают пустой текст и рассуждение в поле `reasoning` (`openrouter/free` — типичный случай). Расширение использует это поле как ответ, а если JSON в нём нет — предлагает сменить модель на вариант без режима рассуждений |
-| Модели провайдера устарели | Нажмите ⟳ рядом со списком моделей в панели (или «Загрузить модели» в настройках) — список подтянется с API провайдера |
-| ИИ: «Ключ отклонён (401)» | Проверьте ключ и доступ к выбранной модели; нажмите «Проверить связь» в настройках |
-| ИИ: «Провайдер требует оплату (402)» | Выберите бесплатную модель (например, с суффиксом `:free`) или другого провайдера |
-| ИИ: «Слишком много запросов (429)» | Уменьшите «Параллельные запросы», подождите минуту или включите резервного провайдера |
-| Локальная модель недоступна | Запустите сервер (`ollama serve`), проверьте порт и разрешите доступ к `localhost` в настройках |
-| «Транскрипт не поместился в контекст» | Уменьшите «Размер чанка» — конвейер разобьёт видео на большее число частей |
-| После перезапуска фонового процесса | Панель покажет отдельную кнопку **«Продолжить»** с числом готовых фрагментов и причиной остановки; продолжение не оплачивает их повторно. Если данные изменились, кнопки нет; отменённые и завершённые задания не возобновляются |
-| «Неполный охват» (`meta.complete=false`) | Часть фрагментов не обработалась после повторов (лимит времени, ошибка модели или пустые ответы). Конспект собран только по успешным частям и не сохранён в кэш: уменьшите «Размер чанка», снизьте параллельность или смените модель и повторите |
-| «Один запрос вместо фрагментов» | Проверьте «Бюджет контекста» в настройках ИИ: он должен соответствовать окну модели. Для `openrouter/free` безопасно 128 000 из заявленных 200 000. Если провайдер всё равно отвечает ошибкой контекста, расширение само перейдёт на фрагменты |
+| "This video has no captions" | Turn on CC on the page and run the analysis again — or press "Grab transcript from page" |
+| "The track is protected by a PO token" (`POT_REQUIRED`) | The extension first tries `youtubei/v1/get_transcript` on its own — the same request the "Show transcript" panel makes, and it needs no PO token. If that fails too, press "Grab transcript from page" (it reads the open panel) or paste the text manually. "Run details" now shows exactly what the scraper found: `panel`, `rows`, `timecode cells`, `duration` |
+| "The Transcript panel was not found on the page" | Expand the description and press "Show transcript" — or open the "In this video" panel → "Show transcript". If the panel is open on the Chapters tab, the extension switches it to the transcript tab itself and re-reads the rows. Rows are located by timecodes, whatever the markup. If the video has no panel at all (captions were never published), there is nothing to summarize. Long videos are scrolled to the end, so the scan takes a few seconds |
+| "The model hit its token limit and returned no text" (`TRUNCATED`) | This is typical of "thinking" models. Increase "Max response tokens", pick a model without a reasoning mode, or switch to the chunked strategy — the extension retries with a larger limit on its own |
+| AI gave no answer (`EMPTY_RESPONSE`, `EMPTY_RESULT`, timeout) | The panel shows a card with the reason and a hint, and if a summary was already on screen (from the cache, for instance) it stays under the card — no red banner instead of the result. "Retry" runs it again (after switching the model, for example), "Settings" opens the providers. One empty answer gets a second chance: the extension repeats the request in a compact format (1600 tokens, 45 s) |
+| "The model answered with text but no JSON" (`BAD_JSON`) | The model ignored the JSON format. The extension already retries in a compact format; if that does not help, pick a model without a reasoning mode or shorten the summary. "Run details" shows the text the model returned |
+| "Instead of a summary the model returned a safety verdict" (`MISROUTED_MODEL`) | A free router sent the request to a classifier model (`User Safety: safe` and the like). A retry almost always lands on a writing model; if it keeps happening, choose a specific model instead of `openrouter/free` |
+| "The background process did not respond" (`WORKER_SILENT`) | The panel received no events and no replies to its pings for more than 30 s — the background process usually restarted. Press "Retry"; if that does not help, reload the tab. A model that "thinks" for a long time before the first token no longer triggers this error: pings keep the run alive |
+| The model answers with "reasoning" only | Some free models return empty text and put their thinking into the `reasoning` field (`openrouter/free` is the typical case). The extension uses that field as the answer, and if there is no JSON in it, suggests switching to a model without a reasoning mode |
+| The provider's model list is outdated | Press ⟳ next to the model list in the panel (or "Load models" in Settings) — the list is refreshed from the provider API |
+| AI: "Key rejected (401)" | Check the key and access to the selected model; press "Test connection" in Settings |
+| AI: "Provider requires payment (402)" | Choose a free model (one with the `:free` suffix, for example) or another provider |
+| AI: "Too many requests (429)" | Lower "Parallel requests", wait a minute, or enable a backup provider |
+| Local model unavailable | Start the server (`ollama serve`), check the port and allow access to `localhost` in Settings |
+| "The transcript did not fit the context" | Lower "Chunk size" — the pipeline will split the video into more parts |
+| After the background process restarts | The panel shows a separate **"Continue"** button with the number of finished chunks and the reason it stopped; continuing does not pay for them twice. If the data has changed, the button is gone; cancelled and finished jobs are not resumed |
+| "Incomplete coverage" (`meta.complete=false`) | Some chunks failed after retries (time limit, model error or empty answers). The summary is built from the successful parts only and is not cached: lower "Chunk size", reduce parallelism, or switch the model and retry |
+| "One request instead of chunks" | Check "Context budget" in the AI settings: it must match the model window. For `openrouter/free`, 128 000 of the declared 200 000 is safe. If the provider still returns a context error, the extension switches to chunks on its own |
 
-В настройках → «О расширении» → «Скопировать диагностику» собирается отчёт без ключей — его удобно приложить к issue. Туда же попадает **журнал транскрипта**: последние 20 попыток с маршрутом (`timedtext` / `get_transcript` / панель на странице), кодом ошибки и счётчиками скрапера (`panel`, `rows`, `cells`, `duration`), от старых к новым.
+In Settings → "About" → "Copy diagnostics" builds a report without keys — handy to attach to an issue. It also includes the **transcript journal**: the last 20 attempts with the route (`timedtext` / `get_transcript` / page panel), the error code and the scraper counters (`panel`, `rows`, `cells`, `duration`), oldest to newest.
 
-## Лицензия
+## License
 
-AGPL-3.0 — см. [LICENSE](LICENSE). Код можно использовать, изменять и распространять на условиях этой лицензии; если изменённая версия предоставляется как сетевой сервис, её исходники должны быть открыты на тех же условиях.
+AGPL-3.0 — see [LICENSE](LICENSE). The code may be used, modified and distributed under the terms of this license; if a modified version is offered as a network service, its source code must be published under the same terms.
+
+
