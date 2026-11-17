@@ -1,0 +1,29 @@
+{
+  "name": "opensummary",
+  "version": "1.6.4",
+  "private": true,
+  "type": "module",
+  "description": "OpenSummary — browser extension that summarizes YouTube videos with a local NLP engine or with any AI provider (OpenAI-compatible, Gemini, Anthropic, Ollama...).",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "test": "node tests/run.mjs",
+    "icons": "node tools/make-icons.mjs",
+    "build": "node tools/build.mjs",
+    "build:chrome": "node tools/build.mjs --target=chrome",
+    "build:firefox": "node tools/build.mjs --target=firefox",
+    "check": "node tools/check.mjs",
+    "e2e": "node tests/e2e/run.mjs",
+    "e2e:rounds": "node tests/e2e/rounds.mjs",
+    "e2e:youtube": "node tests/e2e/youtube.mjs",
+    "quality": "node tools/quality.mjs",
+    "bench": "node tools/bench.mjs",
+    "bench:report": "node tools/bench-report.mjs",
+    "bench:sim": "node tools/bench-sim.mjs",
+    "fixture": "node tools/player-response.mjs",
+    "live": "node tests/live/run.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {}
+}

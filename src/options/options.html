@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenSummary — настройки</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="side">
+        <div class="brand">
+          <span class="logo" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M4 4h10v2H4V4zm0 5h16v2H4V9zm0 5h12v2H4v-2zm14-9.5 4 2.5-4 2.5v-5z"/></svg>
+          </span>
+          <div>
+            <strong>OpenSummary</strong>
+            <div class="muted small" id="version">v1.6.4</div>
+          </div>
+        </div>
+        <nav id="nav">
+          <button class="nav-item" data-section="providers">Провайдеры ИИ</button>
+          <button class="nav-item" data-section="general">Интерфейс</button>
+          <button class="nav-item" data-section="output">Конспект</button>
+          <button class="nav-item" data-section="ai">Тонкая настройка ИИ</button>
+          <button class="nav-item" data-section="data">Данные и приватность</button>
+          <button class="nav-item" data-section="about">О расширении</button>
+        </nav>
+        <div class="side-foot muted small">
+          Ключи API хранятся только в вашем браузере и никогда не отправляются разработчику.
+        </div>
+      </aside>
+
+      <main class="main">
+        <!-- --------------------------------------------------------- providers -->
+        <section class="section" id="section-providers">
+          <h1>Провайдеры ИИ</h1>
+          <p class="muted">
+            OpenSummary поддерживает четыре семейства API: OpenAI-совместимые (<code>/chat/completions</code>),
+            Google Gemini, Anthropic и локальный Ollama. Режим «без ИИ» работает без провайдеров вообще.
+          </p>
+
+          <div class="card" id="providerListCard">
+            <div class="row between">
+              <h2>Подключённые провайдеры</h2>
+              <button class="btn primary" id="addProviderBtn">Добавить провайдера</button>
+            </div>
+            <div id="providerList" class="provider-list"></div>
+          </div>
+
+          <div class="card" id="presetPicker" hidden>
+            <div class="row between">
+              <h2>Выберите сервис</h2>
+              <button class="btn" id="closePresetBtn">Закрыть</button>
+            </div>
+            <input class="input" id="presetSearch" type="search" placeholder="Поиск: gemini, groq, ollama, openrouter…" />
+            <div id="presetGroups"></div>
+          </div>
+
+          <div class="card" id="providerForm" hidden>
+            <div class="row between">
+              <h2 id="providerFormTitle">Провайдер</h2>
+              <button class="btn" id="cancelProviderBtn">Отмена</button>
+            </div>
+            <p class="muted small" id="providerFormNotes"></p>
+
+            <div class="grid">
+              <label class="field">
+                <span>Название</span>
+                <input class="input" id="f-name" />
+              </label>
+              <label class="field">
+                <span>Тип API</span>
+                <select class="input" id="f-type"></select>
+              </label>
+              <label class="field wide">
+                <span>Базовый URL</span>
+                <input class="input" id="f-baseUrl" placeholder="https://api.example.com/v1" />
+              </label>
+              <label class="field" id="accountField" hidden>
+                <span>Идентификатор аккаунта</span>
+                <input class="input" id="f-accountId" placeholder="Account ID" />
+              </label>
+              <label class="field">
+                <span>Путь чата (необязательно)</span>
+                <input class="input" id="f-chatPath" placeholder="/chat/completions" />
+              </label>
+              <label class="field">
+                <span>Путь списка моделей</span>
+                <input class="input" id="f-modelsPath" placeholder="/models" />
+              </label>
+              <label class="field">
+                <span>Схема авторизации</span>
+                <select class="input" id="f-authScheme">
+                  <option value="bearer">Authorization: Bearer …</option>
+                  <option value="x-api-key">Заголовок x-api-key</option>
+                  <option value="header">Свой заголовок</option>
+                  <option value="query">Параметр в URL (?key=…)</option>
+                  <option value="none">Без авторизации (локально)</option>
+                </select>
+              </label>
+              <label class="field" id="authHeaderField" hidden>
+                <span>Имя заголовка</span>
+                <input class="input" id="f-authHeader" placeholder="Authorization" />
+              </label>
+              <label class="field" id="authQueryField" hidden>
+                <span>Имя параметра</span>
+                <input class="input" id="f-authQueryParam" placeholder="key" />
+              </label>
+              <label class="field wide">
+                <span>API-ключ <span class="muted small" id="keyHint"></span></span>
+                <div class="row">
+                  <input class="input" id="f-apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="вставьте ключ" />
+                  <button class="btn" id="showKeyBtn" type="button">Показать</button>
+                </div>
+                <span class="muted small" id="keyState"></span>
+              </label>
+              <label class="field wide">
+                <span>Модели (по одной в строке)</span>
+                <textarea class="input" id="f-models" rows="4" spellcheck="false"></textarea>
+              </label>
+              <label class="field wide">
+                <span>Модель по умолчанию</span>
+                <input class="input" id="f-defaultModel" list="modelOptions" />
+                <datalist id="modelOptions"></datalist>
+              </label>
+              <label class="field wide">
+                <span>Дополнительные заголовки (JSON)</span>
+                <textarea class="input" id="f-headers" rows="2" spellcheck="false" placeholder='{"HTTP-Referer": "https://youtube.com"}'></textarea>
+              </label>
+              <label class="check"><input type="checkbox" id="f-enabled" checked /> <span>Включён</span></label>
+              <label class="check"><input type="checkbox" id="f-jsonMode" /> <span>Просить строгий JSON (<code>response_format</code>)</span></label>
+            </div>
+
+            <div class="row wrap gap" id="hostAccessRow" hidden>
+              <span class="muted small" id="hostAccessText"></span>
+              <button class="btn" id="grantHostBtn" type="button">Разрешить доступ к хосту</button>
+            </div>
+
+            <div class="actions">
+              <button class="btn primary" id="saveProviderBtn">Сохранить</button>
+              <button class="btn" id="fetchModelsBtn">Загрузить модели</button>
+              <button class="btn" id="testProviderBtn">Проверить связь</button>
+              <button class="btn" id="makeDefaultBtn">Сделать основным</button>
+              <button class="btn danger" id="deleteProviderBtn">Удалить</button>
+            </div>
+            <div id="providerStatus" class="status" hidden></div>
+            <p class="muted small" id="providerDocs"></p>
+          </div>
+        </section>
+
+        <!-- ----------------------------------------------------------- general -->
+        <section class="section" id="section-general" hidden>
+          <h1>Интерфейс</h1>
+          <div class="card">
+            <div class="grid">
+              <label class="field">
+                <span>Язык интерфейса</span>
+                <select class="input" id="g-uiLang">
+                  <option value="auto">Как в браузере</option>
+                  <option value="ru">Русский</option>
+                  <option value="en">English</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Тема панели</span>
+                <select class="input" id="g-theme">
+                  <option value="light">Светлая (по умолчанию)</option>
+                  <option value="dark">Тёмная</option>
+                  <option value="auto">Как на YouTube</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Ширина панели, px</span>
+                <input class="input" id="g-panelWidth" type="number" min="300" max="720" step="10" />
+              </label>
+              <label class="check"><input type="checkbox" id="g-showFab" /> <span>Круглая кнопка на странице видео</span></label>
+              <label class="check"><input type="checkbox" id="g-docked" /> <span>Встраивать панель в колонку YouTube (иначе — поверх страницы)</span></label>
+              <label class="check"><input type="checkbox" id="g-autoOpenPanel" /> <span>Открывать панель автоматически</span></label>
+              <label class="check"><input type="checkbox" id="g-autoSummarize" /> <span>Сразу считать конспект при открытии видео</span></label>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Горячие клавиши</h2>
+            <p class="muted">Настроить можно на странице <code>chrome://extensions/shortcuts</code>.</p>
+            <ul class="list">
+              <li><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> — показать/скрыть панель</li>
+              <li><kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd> — конспект текущего видео</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------------------------ output -->
+        <section class="section" id="section-output" hidden>
+          <h1>Конспект</h1>
+          <div class="card">
+            <div class="grid">
+              <label class="field">
+                <span>Язык конспекта</span>
+                <select class="input" id="o-language">
+                  <option value="auto">Как в видео</option>
+                  <option value="ru">Русский</option>
+                  <option value="en">English</option>
+                  <option value="uk">Українська</option>
+                  <option value="kk">Қазақша</option>
+                  <option value="es">Español</option>
+                  <option value="de">Deutsch</option>
+                  <option value="fr">Français</option>
+                  <option value="it">Italiano</option>
+                  <option value="pt">Português</option>
+                  <option value="pl">Polski</option>
+                  <option value="tr">Türkçe</option>
+                  <option value="zh">中文</option>
+                  <option value="ja">日本語</option>
+                  <option value="ko">한국어</option>
+                  <option value="ar">العربية</option>
+                  <option value="hi">हिन्दी</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Объём</span>
+                <select class="input" id="o-length">
+                  <option value="short">Кратко (5 пунктов)</option>
+                  <option value="standard">Обычный</option>
+                  <option value="detailed">Подробный</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Режим конспекта</span>
+                <select class="input" id="o-summaryMode">
+                  <option value="whole">Вся запись (один запрос или сборка)</option>
+                  <option value="timeline">По таймкодам (как у Яндекса: отрезок за отрезком)</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Тон</span>
+                <select class="input" id="o-tone">
+                  <option value="neutral">Нейтральный</option>
+                  <option value="business">Деловой</option>
+                  <option value="casual">Простой и дружелюбный</option>
+                  <option value="academic">Академический</option>
+                  <option value="bullets">Только тезисы, без воды</option>
+                </select>
+              </label>
+              <label class="check"><input type="checkbox" id="o-includeTimestamps" /> <span>Оставлять таймстемпы со ссылками на моменты</span></label>
+              <label class="check"><input type="checkbox" id="o-selfCheck" /> <span>Добавлять вопросы для самопроверки (необязательно)</span></label>
+              <label class="field wide">
+                <span>Свои инструкции для модели (необязательно)</span>
+                <textarea class="input" id="o-customInstructions" rows="3" placeholder="Например: выделяй конкретные цифры, имена и сроки; в конце — 3 вопроса для проверки понимания."></textarea>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- ---------------------------------------------------------------- ai -->
+        <section class="section" id="section-ai" hidden>
+          <h1>Тонкая настройка ИИ</h1>
+          <div class="card">
+            <div class="grid">
+              <label class="field">
+                <span>Стратегия</span>
+                <select class="input" id="a-strategy">
+                  <option value="auto">Авто (один запрос или map-reduce)</option>
+                  <option value="single">Всегда один запрос</option>
+                  <option value="map-reduce">Всегда по частям (для длинных видео)</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Бюджет контекста, токенов</span>
+                <input class="input" id="a-contextTokens" type="number" min="4000" max="900000" step="1000" />
+              </label>
+              <label class="field">
+                <span>Размер чанка, токенов</span>
+                <input class="input" id="a-chunkTokens" type="number" min="700" max="24000" step="100" />
+              </label>
+              <label class="field">
+                <span>Параллельные запросы (1–20)</span>
+                <input class="input" id="a-concurrency" type="number" min="1" max="20" />
+              </label>
+              <label class="field">
+                <span>Temperature</span>
+                <input class="input" id="a-temperature" type="number" min="0" max="1" step="0.05" />
+              </label>
+              <label class="field">
+                <span>Максимум токенов ответа</span>
+                <input class="input" id="a-maxOutputTokens" type="number" min="300" max="16000" step="100" />
+              </label>
+              <label class="field">
+                <span>Повторы при сбое</span>
+                <input class="input" id="a-retries" type="number" min="0" max="5" />
+              </label>
+              <label class="field">
+                <span>Таймаут запроса, сек</span>
+                <input class="input" id="a-timeout" type="number" min="15" max="900" step="5" />
+              </label>
+              <label class="check"><input type="checkbox" id="a-stream" /> <span>Показывать текст по мере генерации</span></label>
+              <label class="check"><input type="checkbox" id="a-fallbackEnabled" /> <span>Автопереключение на второго провайдера при сбое</span></label>
+              <label class="check"><input type="checkbox" id="a-useCache" /> <span>Кэшировать конспекты (повтор не тратит токены)</span></label>
+              <label class="check"><input type="checkbox" id="a-chunkCache" /> <span>Кэшировать разбор фрагментов между запусками</span></label>
+              <label class="field wide">
+                <span>Своя системная инструкция (заменит стандартную)</span>
+                <textarea class="input" id="a-systemPromptOverride" rows="3" placeholder="Оставьте пустым, чтобы использовать встроенный промпт OpenSummary"></textarea>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- -------------------------------------------------------------- data -->
+        <section class="section" id="section-data" hidden>
+          <h1>Данные и приватность</h1>
+          <div class="card">
+            <h2>Хранение ключей</h2>
+            <label class="field">
+              <span>Где хранить API-ключи</span>
+              <select class="input" id="d-keyStorage">
+                <option value="local">В браузере постоянно (удобно)</option>
+                <option value="session">Только до закрытия браузера (безопаснее)</option>
+              </select>
+            </label>
+            <p class="muted small">Ключи никогда не покидают устройство: они используются только для запросов к выбранному вами провайдеру.</p>
+          </div>
+          <div class="card">
+            <div class="row between">
+              <h2>Кэш конспектов</h2>
+              <span class="muted small" id="d-cacheStats"></span>
+            </div>
+            <div class="grid">
+              <label class="check"><input type="checkbox" id="d-cacheEnabled" /> <span>Использовать кэш</span></label>
+              <label class="field">
+                <span>Хранить, дней</span>
+                <input class="input" id="d-cacheTtl" type="number" min="1" max="365" />
+              </label>
+              <label class="field">
+                <span>Записей в истории</span>
+                <input class="input" id="d-historyLimit" type="number" min="20" max="500" />
+              </label>
+            </div>
+            <div class="actions">
+              <button class="btn" id="clearCacheBtn">Очистить кэш</button>
+              <button class="btn" id="clearHistoryBtn">Очистить историю</button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Резервная копия</h2>
+            <div class="actions">
+              <button class="btn" id="exportBtn">Экспорт настроек (без ключей)</button>
+              <button class="btn" id="exportKeysBtn">Экспорт с ключами</button>
+              <button class="btn" id="importBtn">Импорт из файла</button>
+              <input type="file" id="importFile" accept="application/json" hidden />
+            </div>
+            <p class="muted small">Экспорт с ключами содержит секреты — храните файл в надёжном месте.</p>
+          </div>
+          <div class="card danger-card">
+            <h2>Сброс</h2>
+            <div class="actions">
+              <button class="btn" id="resetSettingsBtn">Сбросить настройки</button>
+              <button class="btn danger" id="wipeBtn">Удалить все данные расширения</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ------------------------------------------------------------- about -->
+        <section class="section" id="section-about" hidden>
+          <h1>О расширении</h1>
+          <div class="card">
+            <h2 id="aboutName">OpenSummary</h2>
+            <p class="muted small" id="aboutVersion"></p>
+            <p>
+              Два движка конспектирования: полностью локальный (без ИИ, офлайн) и ИИ-режим с поддержкой
+              OpenAI-совместимых API, Google Gemini, Anthropic и локальных моделей через Ollama / LM Studio.
+            </p>
+            <ul class="list">
+              <li>Транскрипт берётся из субтитров видео (ручных или автоматических) — либо из панели «Транскрипт» на странице, либо из вставленного вами текста.</li>
+              <li>В ИИ-режиме в модель уходит только текст субтитров и запрос на конспект. Ключи и настройки остаются в браузере.</li>
+              <li>Рекламные вставки и призывы подписаться отфильтровываются в обоих режимах.</li>
+            </ul>
+            <p class="muted small">Лицензия AGPL-3.0. Полная политика — в файле PRIVACY.md в репозитории расширения.</p>
+          </div>
+          <div class="card">
+            <h2>Диагностика</h2>
+            <div class="row wrap gap">
+              <button class="btn" id="copyDiagnosticsBtn">Скопировать диагностику</button>
+              <button class="btn" id="openShortcutsBtn">Горячие клавиши</button>
+            </div>
+            <pre id="diagnostics" class="diag"></pre>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>

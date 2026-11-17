@@ -1,0 +1,133 @@
+{
+  "manifest_version": 3,
+  "name": "OpenSummary — AI-саммари для YouTube",
+  "short_name": "OpenSummary",
+  "version": "1.6.4",
+  "version_name": "1.6.4",
+  "description": "Саммари, конспект и Q&A для любого видео на YouTube: локальный движок без ИИ или любой ИИ-провайдер (OpenRouter, Gemini, Groq, Ollama, OpenAI…).",
+  "minimum_chrome_version": "116",
+  "author": "OpenSummary",
+  "homepage_url": "https://github.com/Smokelweiss/OpenSummary",
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "action": {
+    "default_title": "OpenSummary — саммари видео",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "scripting",
+    "tabs",
+    "alarms",
+    "contextMenus",
+    "downloads"
+  ],
+  "host_permissions": [
+    "https://*.youtube.com/*",
+    "https://generativelanguage.googleapis.com/*",
+    "https://openrouter.ai/*",
+    "https://api.groq.com/*",
+    "https://api.cerebras.ai/*",
+    "https://api.mistral.ai/*",
+    "https://api.deepseek.com/*",
+    "https://api.openai.com/*",
+    "https://api.anthropic.com/*",
+    "https://api.x.ai/*",
+    "https://api.together.xyz/*",
+    "https://api.fireworks.ai/*",
+    "https://api.hyperbolic.xyz/*",
+    "https://api.deepinfra.com/*",
+    "https://api.novita.ai/*",
+    "https://api.sambanova.ai/*",
+    "https://integrate.api.nvidia.com/*",
+    "https://models.inference.ai.azure.com/*",
+    "https://api.cloudflare.com/*",
+    "https://dashscope-intl.aliyuncs.com/*",
+    "https://api.moonshot.ai/*",
+    "https://api.moonshot.cn/*",
+    "https://open.bigmodel.cn/*",
+    "https://api.z.ai/*",
+    "https://api.siliconflow.cn/*",
+    "https://api.chutes.ai/*",
+    "https://api.arliai.com/*",
+    "https://api.mymemory.translated.net/*",
+    "https://translate.googleapis.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "optional_host_permissions": [
+    "*://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/*",
+        "https://m.youtube.com/*"
+      ],
+      "js": [
+        "src/content/namespace.js",
+        "src/content/i18n.js",
+        "src/content/css.js",
+        "src/content/util.js",
+        "src/content/transcript-dom.js",
+        "src/content/exporter.js",
+        "src/content/panel.js",
+        "src/content/inject.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/icons/*",
+        "src/content/page-bridge.js"
+      ],
+      "matches": [
+        "https://*.youtube.com/*"
+      ]
+    }
+  ],
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Показать/скрыть панель OpenSummary"
+    },
+    "summarize-current": {
+      "suggested_key": {
+        "default": "Alt+Shift+D",
+        "mac": "Alt+Shift+D"
+      },
+      "description": "Саммаризовать текущее видео"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "opensummary@opensummary.app",
+      "strict_min_version": "128.0"
+    }
+  }
+}

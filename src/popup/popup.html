@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OpenSummary</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="head">
+      <span class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M4 4h10v2H4V4zm0 5h16v2H4V9zm0 5h12v2H4v-2zm14-9.5 4 2.5-4 2.5v-5z"/></svg>
+      </span>
+      <strong>OpenSummary</strong>
+      <span class="ver" id="version"></span>
+      <button class="icon-btn" id="openOptions" title="Настройки" aria-label="Настройки">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 6a2 2 0 1 1 0-4 2 2 0 0 1 0 4zm8.4-1.6-.9-.5c.1-.6.1-1.2 0-1.8l.9-.5-1-1.7-1 .4c-.4-.4-.9-.8-1.5-1l.1-1.1h-2l-.2 1c-.6.2-1.1.5-1.6.9l-1-.5-1 1.7.9.6c-.2.6-.2 1.2 0 1.8l-.9.5 1 1.7 1-.4c.5.4 1 .7 1.6.9l.2 1h2l-.1-1.1c.5-.2 1-.5 1.5-1l1 .5 1-1.7z"/></svg>
+      </button>
+    </header>
+
+    <section class="card" id="videoCard">
+      <div class="video-row" id="videoRow" hidden>
+        <img id="thumb" class="thumb" alt="" />
+        <div class="video-meta">
+          <div class="title" id="videoTitle">—</div>
+          <div class="sub" id="videoSub"></div>
+        </div>
+      </div>
+      <p class="muted" id="pageHint">Проверяю страницу…</p>
+      <div class="actions">
+        <button class="btn primary" id="runAi" disabled>
+          <svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2zm6 12 .9 2.6L21.5 18l-2.6.9-.9 2.6-.9-2.6L14.5 18l2.6-.9L18 14z"/></svg>
+          Сделать конспект
+        </button>
+        <button class="btn" id="openPanel" disabled>Открыть панель</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <span class="label">Провайдер</span>
+        <button class="link" id="openProviders">Изменить</button>
+      </div>
+      <div class="provider" id="providerRow">
+        <span class="dot" id="providerDot"></span>
+        <div class="provider-meta">
+          <div id="providerName">—</div>
+          <div class="muted small" id="providerModel"></div>
+        </div>
+      </div>
+      <div class="row between muted small" id="usageRow" hidden>
+        <span id="usageText"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row between">
+        <span class="label">Недавние</span>
+        <span class="muted small" id="cacheInfo"></span>
+      </div>
+      <ul class="history" id="historyList"><li class="muted small">…</li></ul>
+    </section>
+
+    <footer class="foot">
+      <span class="muted small">Ключи хранятся локально · без телеметрии</span>
+    </footer>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>

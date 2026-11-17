@@ -1,0 +1,19 @@
+# build output
+dist/
+
+# dependencies (the project has none, but keep stray installs out)
+node_modules/
+
+# local artefacts
+*.log
+*.zip
+tmp-*.mjs
+.DS_Store
+Thumbs.db
+
+# secrets — never commit
+.env
+.env.*
+CREDENTIALS.md
+*.pem
+*.key
